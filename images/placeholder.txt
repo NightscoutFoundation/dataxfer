@@ -1,4 +1,0 @@
-This directory can be used for images on the site.
-
-This file exists so git has a record of this directory. It should be removed
-if/when files are added to this directory.

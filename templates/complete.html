@@ -32,11 +32,23 @@
   <body>
 
     <div class="container">
-      <h1>Hello world.</h1>
+      <h1>Welcome back.</h1>
       <p class="lead">
-        This website is a proof of concept project to develop a web-based data
-        transfer tool from Nightscout databases to Open Humans and other
-        platforms.
+        You've returned from Open Humans with a code.
+      </p>
+      <p class="lead">
+        The server should have converted this code ('{{ code}}') to a token,
+        which can be used to push data to your Open Humans account.
+      </p>
+      <p class="lead">
+        {% if token %}
+          Token: "{{ token }}"
+        {% else %}
+          <p class="lead">
+            <b>Token not retrieved!</b> If you're a developer or admin, you should
+            check your logs for error messages.
+          </p>
+        {% endif %}
       </p>
     </div>
 
@@ -49,6 +61,6 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
     <!-- Local JavaScript -->
-    <script src="stylesheets/main.js">
+    <script src="javascripts/complete.js"></script>
   </body>
 </html>
