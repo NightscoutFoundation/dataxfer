@@ -20,7 +20,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 
     <!-- Local CSS overrides -->
-    <link href="stylesheets/main.css" rel="stylesheet">
+    <link href="static/main.css" rel="stylesheet">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -32,36 +32,94 @@
   <body>
 
     <div class="container">
-      <h1>Hello world.</h1>
+      <h1>Nightscout &rarr; Open Humans</h1>
       <p class="lead">
-        This website is a proof of concept project to develop a web-based data
-        transfer tool from Nightscout databases to Open Humans and other
-        platforms.
-      </p>
-      <hr>
-      <p class="lead">
-        The first step is creating an Open Humans account and authorizing
-        this app to add data to that account.
+        Use this small open source app to perform a one-time copy of raw
+        Nightscout data into your
+        <a href="https://www.openhumans.org/">Open Humans</a> account.
+        This enables you to share your data with studies and citizen science
+        projects.
       </p>
       <p class="lead">
-        This following button starts the process.
+        Learn more by visiting:<br>
+        <a href="{{ oh_proj_page }}">{{ oh_proj_page }}</a>
       </p>
+      <h2>How it works</h2>
+      <ol>
+        <li><b>Click the button below.</b><br>
+          This takes you to Open Humans.</li>
+        <li><b>Log in or create an Open Humans account.</b><br>
+          We'll send your data to this account.</li>
+        <li><b>Authorize our project in Open Humans.</b><br>
+          This authorizes us to add data to your account.</li>
+        <li><b>Give us your Nightscout URL.</b><br>
+          You can also specify a time range.</li>
+        <li><b>That's it!</b><br>
+          We'll get your data and put it in your Open Humans account.
+          You'll be able to access &amp; manage your data here:
+          <a href="{{ oh_proj_page }}">{{ oh_proj_page }}</a>
+        </li>
+      </ol>
+      <p>
+        This is a one-off transfer. If you want to update your data, you'll
+        have to do it again (starting with the button below). Updates will
+        overwrite all current data.
+      </p>
+      {% if client_id %}
       <a
-        {% if client_id %}
-        class="btn btn-default"
+        class="btn btn-primary btn-lg"
         href="https://www.openhumans.org/direct-sharing/projects/oauth2/authorize/?client_id={{ client_id }}&response_type=code"
         {% else %}
         class="btn btn-default disabled"
         {% endif %}
         >
-        Click here to perform Open Humans authorization
+        Start Nightscout Data Transfer
       </a>
       {% if not client_id %}
       <p class="text-muted"><i>
         This button is disabled because client_id hasn't been configured.
       </i></p>
       {% endif %}
-
+      <h2>About Open Humans</h2>
+      <p>
+        <a href="https://www.openhumans.org/">Open Humans</a> is a nonprofit
+        project that has been funded by the Robert Wood Johnson Foundation and
+        Knight Foundation. Their platform enables members to aggregate data and
+        share data with researchers and citizen scientists.
+      </p>
+      <p>
+        Data is private by default in Open Humans. You choose when to share.
+        Members can decide to make data public, or can contribute it directly
+        (and privately) to projects created by researchers and citizen
+        scientists.
+      </p>
+      <p>
+        Want to see what projects are currently inviting Nightscout data?
+        Visit our activity page in Open Humans:
+        <a href="{{ oh_proj_page }}">{{ oh_proj_page }}</a>
+      </p>
+      <p>
+        Interested in working with Nightscout data in Open Humans? Read more
+        here how to retrieve public data and create projects:
+        <a href="https://www.openhumans.org/research/">https://www.openhumans.org/research/</a>
+      </p>
+      <h2>Technical details</h2>
+      <p>
+        This app does not receive access to any identifying information from
+        your Open Humans account, and does not store any data locally. The app
+        deposits data into your Open Humans account associated with the
+        <a href="{{ oh_proj_page }}">"Nightscout Data Transfer"</a> activity,
+        which is managed by James Wedding and other Nightscout Foundation staff.
+      </p>
+      <p>
+        Raw data is JSON format, retrieved from your Nightscout server. You'll
+        have access to data files in the Open Humans activity page:
+        <a href="{{ oh_proj_page }}">{{ oh_proj_page }}</a>
+      </p>
+      <p>
+        Source code for this app:
+        <a href="https://github.com/NightscoutFoundation/dataxfer">https://github.com/NightscoutFoundation/dataxfer</a>
+      </p>
     </div>
 
     <!-- Bootstrap core JavaScript

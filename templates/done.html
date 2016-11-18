@@ -32,38 +32,18 @@
   <body>
 
     <div class="container">
-      <h1>Nightscout information.</h1>
+      <h1>Transfer done!</h1>
       <p class="lead">
-        Welcome back! We have a token from Open Humans &ndash; now we need
-        your Nightscout URL so we can retrieve and load the data.
+        Your Nightscout data was copied into Open Humans.
       </p>
-      {% if not token %}
-        Token: "{{ token }}"
-        <p class="lead">
-          <b>Token not retrieved!</b> If you're a developer or admin, you should
-          check your logs for error messages.
-        </p>
-      {% else %}
-      <form method="post" action="{{ url_for('complete') }}">
-        <input type="hidden" name="accessToken" value="{{ token }}">
-        <div class="form-group">
-          <label for="afterDate">Starting from this date...</label>
-          <input type="text" class="form-control" id="afterDate" name=afterDate placeholder="YYYY-MM-DD">
-          <span id="helpBlock" class="help-block">Get all data from on or after this date. (If blank, get from earliest date possible.)</span>
-        </div>
-        <div class="form-group">
-          <label for="beforeDate">...up to this date.</label>
-          <input type="text" class="form-control" id="beforeDate" name=beforeDate placeholder="YYYY-MM-DD">
-          <span id="helpBlock" class="help-block">Get all data from on or before this date. (If blank, get data up to present.)</span>
-        </div>
-        <div class="form-group">
-          <label for="nightscoutURL">Your Nightscout URL</label>
-          <input type="text" class="form-control" id="nightscoutURL" name=nightscoutURL>
-        </div>
-        <input type="submit">
-      </form>
-      {% endif %}
-
+      <p class="lead">
+        Your data &ndash; as well as opportunities to share it &ndash; should
+        be available on our Open Humans page:<br>
+        <a href="https://www.openhumans.org/activity/nightscout-data-transfer/">https://www.openhumans.org/activity/nightscout-data-transfer/</a>
+      </p>
+      <p>
+        <a href="{{ url_for('index') }}">Return to our starting page.</a>
+      </p>
     </div>
 
     <!-- Bootstrap core JavaScript

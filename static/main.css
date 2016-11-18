@@ -1,1 +1,8 @@
 /* Create new styles and override default Bootstrap here. */
+body {
+  font-size: 16px;
+}
+
+li {
+  margin-bottom: 10px;
+}
