@@ -28,6 +28,12 @@ Copy `env.example` to `.env`.
 
 Replace `CLIENT_ID` and `CLIENT_SECRET` to match your app.
 
+#### Set up Python environment
+
+Set up a virtual environment with virtualenv (optional but highly recommended). Use pip to install `requirements.txt`.
+
+(If these are unfamiliar tools, you can search & find various guides on installing and using pip, virtualenv, and virtualenvwrapper.)
+
 #### Install and run with foreman
 
 `Procfile` and `.env` files are used by foreman. You can install foreman
