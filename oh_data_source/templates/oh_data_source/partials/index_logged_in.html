@@ -1,0 +1,77 @@
+<h2>Open Humans connected
+  <form class="pull-right" method="post" action="{% url 'logout' %}">
+    {% csrf_token %}
+    <input class="btn btn-default btn-xs" type="submit" value="Log out">
+  </form>
+</h2>
+
+{% if request.user.openhumansmember.last_xfer_datetime %}
+<div class="panel
+    {% if request.user.openhumansmember.last_xfer_status == 'Failed' %}panel-danger
+    {% elif request.user.openhumansmember.last_xfer_status == 'Complete' %}panel-success
+    {% else %}panel-warning{% endif %}">
+  <div class="panel-heading">
+    Status of latest data transfer
+  </div>
+  <div class="panel-body">
+    <p>
+      <b>Initiated:</b> {{ request.user.openhumansmember.last_xfer_datetime }} UTC<br>
+      <b>Status:</b> {{ request.user.openhumansmember.last_xfer_status }}
+    </p>
+    {% if request.user.openhumansmember.last_xfer_status == 'Queued' or request.user.openhumansmember.last_xfer_status == 'Initiated' %}
+    <p>
+      Please give the data transfer a couple minutes to complete. You can
+      reload this page to check for updates.
+    </p>
+    {% endif %}
+  </div>
+</div>
+
+{% else %}
+<p class="lead">
+  This app is now connected to Open Humans!{% if not oh_data.data %} Use the
+  form below to start a data transfer.{% endif %}
+</p>
+{% endif %}
+
+{% if oh_data.data %}
+<hr>
+<h3>Current Open Humans data</h3>
+<table class="table">
+  <tr>
+    <th>Filename</th>
+    <th></th>
+    <th>Created</th>
+    <th>Start date</th>
+    <th>End date</th>
+  </tr>
+  {% for filedata in oh_data.data %}
+  <tr>
+    <td>{{ filedata.basename }}</td>
+    <td>
+      <a class="btn btn-default btn-xs" href="{{ filedata.download_url }}" download>Download</a>
+    </td>
+    <td>
+      {{ filedata.created }}
+    </td>
+    <td>
+      {{ filedata.metadata.start_date }}
+    </td>
+    <td>
+      {{ filedata.metadata.end_date }}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+<hr>
+{% if oh_data.data %}
+<h3>Replace data with new transfer</h3>
+{% elif request.user.openhumansmember.last_xfer_datetime %}
+<h3>Initiate new data transfer</h3>
+{% else %}
+<h3>Initiate data transfer</h3>
+{% endif %}
+
+{% include 'oh_data_source/partials/request_xfer_form.html' %}

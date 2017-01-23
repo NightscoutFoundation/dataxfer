@@ -1,0 +1,58 @@
+{% extends 'oh_data_source/base.html' %}
+
+{% block main_container %}
+
+<h1>Nightscout &rarr; Open Humans</h1>
+
+{% if request.user.is_authenticated %}
+
+  {% include 'oh_data_source/partials/index_logged_in.html' %}
+
+{% else %}
+
+  {% include 'oh_data_source/partials/index_not_logged_in.html' %}
+
+{% endif %}
+
+<hr>
+<h2>About Open Humans</h2>
+<p>
+  <a href="https://www.openhumans.org/">Open Humans</a> is a nonprofit
+  project that has been funded by the Robert Wood Johnson Foundation and
+  Knight Foundation. Their platform enables members to aggregate data and
+  share data with researchers and citizen scientists.
+</p>
+<p>
+  Data is private by default in Open Humans. You choose when to share.
+  Members can decide to make data public, or can contribute it directly
+  (and privately) to projects created by researchers and citizen
+  scientists.
+</p>
+<p>
+  Want to see what projects are currently inviting Nightscout data?
+  Visit our activity page in Open Humans:
+  <a href="{{ oh_proj_page }}">{{ oh_proj_page }}</a>
+</p>
+<p>
+  Interested in working with Nightscout data in Open Humans? Read more
+  here how to retrieve public data and create projects:
+  <a href="https://www.openhumans.org/research/">https://www.openhumans.org/research/</a>
+</p>
+<h2>Technical details</h2>
+<p>
+  This app does not receive access to any identifying information from
+  your Open Humans account, and does not store any data locally. The app
+  deposits data into your Open Humans account associated with the
+  <a href="{{ oh_proj_page }}">"Nightscout Data Transfer"</a> activity,
+  which is managed by James Wedding and other Nightscout Foundation staff.
+</p>
+<p>
+  Raw data is JSON format, retrieved from your Nightscout server. You'll
+  have access to data files in the Open Humans activity page:
+  <a href="{{ oh_proj_page }}">{{ oh_proj_page }}</a>
+</p>
+<p>
+  Source code for this app:
+  <a href="https://github.com/NightscoutFoundation/dataxfer">https://github.com/NightscoutFoundation/dataxfer</a>
+</p>
+{% endblock main_container %}
