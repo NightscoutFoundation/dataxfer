@@ -20,7 +20,7 @@ from django.utils import lorem_ipsum
 import requests
 
 from .models import OpenHumansMember
-from .nightscout_data import get_ns_entries
+from .nightscout_data import ns_entries_files
 
 OH_API_BASE = 'https://www.openhumans.org/api/direct-sharing'
 OH_EXCHANGE_TOKEN = OH_API_BASE + '/project/exchange-member/'
@@ -71,7 +71,7 @@ def add_data_to_open_humans(oh_member, ns_before, ns_after, ns_url, tempdir):
     files you plan to upload to Open Humans.
     """
     # Create example file.
-    entries_filepath, entries_metadata = get_ns_entries(
+    entries_filepath, entries_metadata = ns_entries_files(
         oh_member=oh_member, tempdir=tempdir, ns_url=ns_url,
         before_date=ns_before, after_date=ns_after)
 
