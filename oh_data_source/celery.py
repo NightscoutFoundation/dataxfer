@@ -21,7 +21,7 @@ CELERY_BROKER_URL = os.getenv('CLOUDAMQP_URL', 'amqp://')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE',
                       'oh_data_source.settings')
 
-app = Celery('genevieve_client', broker=CELERY_BROKER_URL)
+app = Celery('oh_data_source', broker=CELERY_BROKER_URL)
 # Set up Celery with Heroku CloudAMQP (or AMQP in local dev).
 app.conf.update({
     'BROKER_URL': CELERY_BROKER_URL,

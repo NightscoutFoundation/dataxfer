@@ -139,6 +139,7 @@ def complete(request):
 @login_required
 @require_http_methods(['POST'])
 def transfer(request):
+    from .celery import CELERY_BROKER_URL
     xfer_to_open_humans.delay(
         oh_id=request.user.openhumansmember.oh_id,
         ns_before=request.POST['beforeDate'],
