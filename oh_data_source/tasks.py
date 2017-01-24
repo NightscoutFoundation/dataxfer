@@ -15,12 +15,13 @@ import tempfile
 import textwrap
 from urllib2 import HTTPError
 
+import arrow
 from celery import shared_task
 from django.utils import lorem_ipsum
 import requests
 
 from .models import OpenHumansMember
-from .nightscout_data import ns_entries_files
+from .nightscout_data import normalize_url, ns_data_file
 
 OH_API_BASE = 'https://www.openhumans.org/api/direct-sharing'
 OH_EXCHANGE_TOKEN = OH_API_BASE + '/project/exchange-member/'
@@ -70,16 +71,42 @@ def add_data_to_open_humans(oh_member, ns_before, ns_after, ns_url, tempdir):
     will be cleaned up later. You can use the tempdir to stage the creation of
     files you plan to upload to Open Humans.
     """
-    # Create example file.
-    entries_filepath, entries_metadata = ns_entries_files(
+    ns_url = normalize_url(ns_url)
+    if not ns_url:
+        oh_member.last_xfer_status = 'Aborted: URL did not return 200 status.'
+        oh_member.save()
+
+    if not ns_before:
+        ns_before = arrow.get().format('YYYY-MM-DD')
+
+    # Entries data.
+    entries_filepath, entries_metadata = ns_data_file(
         oh_member=oh_member, tempdir=tempdir, ns_url=ns_url,
-        before_date=ns_before, after_date=ns_after)
+        data_type='entries', before_date=ns_before, after_date=ns_after)
+
+    # Treatments data.
+    treatments_filepath, treatments_metadata = ns_data_file(
+        oh_member=oh_member, tempdir=tempdir, ns_url=ns_url,
+        data_type='treatments', before_date=ns_before, after_date=ns_after)
+
+    # Devicestatus data.
+    devicestatus_filepath, devicestatus_metadata = ns_data_file(
+        oh_member=oh_member, tempdir=tempdir, ns_url=ns_url,
+        data_type='devicestatus', before_date=ns_before, after_date=ns_after)
+
+    # Profile data.
+    profile_filepath, profile_metadata = ns_data_file(
+        oh_member=oh_member, tempdir=tempdir, ns_url=ns_url,
+        data_type='profile', before_date=ns_before, after_date=ns_after)
 
     # Remove all files previously added to Open Humans.
     delete_all_oh_files(oh_member)
 
-    # Upload this file to Open Humans.
+    # Upload files to Open Humans.
     upload_file_to_oh(oh_member, entries_filepath, entries_metadata)
+    upload_file_to_oh(oh_member, treatments_filepath, treatments_metadata)
+    upload_file_to_oh(oh_member, profile_filepath, profile_metadata)
+    upload_file_to_oh(oh_member, devicestatus_filepath, devicestatus_metadata)
 
 
 def make_example_datafile(tempdir):

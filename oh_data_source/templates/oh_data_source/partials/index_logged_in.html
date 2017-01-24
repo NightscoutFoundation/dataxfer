@@ -6,27 +6,28 @@
 </h2>
 
 {% if request.user.openhumansmember.last_xfer_datetime %}
-<div class="panel
-    {% if request.user.openhumansmember.last_xfer_status == 'Failed' %}panel-danger
-    {% elif request.user.openhumansmember.last_xfer_status == 'Complete' %}panel-success
-    {% else %}panel-warning{% endif %}">
-  <div class="panel-heading">
-    Status of latest data transfer
+  {% with request.user.openhumansmember.last_xfer_status as status %}
+  <div class="panel
+      {% if 'Failed' in status or 'Aborted' in status %}panel-danger
+      {% elif status == 'Complete' %}panel-success
+      {% else %}panel-warning{% endif %}">
+    <div class="panel-heading">
+      Status of latest data transfer
+    </div>
+    <div class="panel-body">
+      <p>
+        <b>Initiated:</b> {{ request.user.openhumansmember.last_xfer_datetime }} UTC<br>
+        <b>Status:</b> {{ request.user.openhumansmember.last_xfer_status }}
+      </p>
+      {% if request.user.openhumansmember.last_xfer_status == 'Queued' or request.user.openhumansmember.last_xfer_status == 'Initiated' %}
+      <p>
+        Please give the data transfer a couple minutes to complete. You can
+        reload this page to check for updates.
+      </p>
+      {% endif %}
+    </div>
   </div>
-  <div class="panel-body">
-    <p>
-      <b>Initiated:</b> {{ request.user.openhumansmember.last_xfer_datetime }} UTC<br>
-      <b>Status:</b> {{ request.user.openhumansmember.last_xfer_status }}
-    </p>
-    {% if request.user.openhumansmember.last_xfer_status == 'Queued' or request.user.openhumansmember.last_xfer_status == 'Initiated' %}
-    <p>
-      Please give the data transfer a couple minutes to complete. You can
-      reload this page to check for updates.
-    </p>
-    {% endif %}
-  </div>
-</div>
-
+  {% endwith %}
 {% else %}
 <p class="lead">
   This app is now connected to Open Humans!{% if not oh_data.data %} Use the
