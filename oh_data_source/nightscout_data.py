@@ -68,8 +68,8 @@ def get_ns_entries(ns_url, before_date, after_date):
         ns_params['find[date][$gt]'] = curr_start
         entries_req = requests.get(ns_entries_url, params=ns_params)
         logger.debug('Request complete.')
-        assert (entries_req.status_code == 200 or retries < MAX_RETRIES,
-                'NS entries URL != 200 status')
+        assert entries_req.status_code == 200 or retries < MAX_RETRIES, \
+            'NS entries URL != 200 status'
         if entries_req.status_code != 200:
             retries +=1
             logger.debug("RETRY {}: Status code is {}".format(
@@ -120,8 +120,8 @@ def get_ns_devicestatus(ns_url, before_date, after_date):
         ns_params['find[created_at][$gt]'] = curr_start.isoformat()
         devicestatus_req = requests.get(ns_entries_url, params=ns_params)
         logger.debug('Request complete.')
-        assert (devicestatus_req.status_code == 200 or retries < MAX_RETRIES,
-                'NS devicestatus URL != 200 status')
+        assert devicestatus_req.status_code == 200 or retries < MAX_RETRIES, \
+            'NS devicestatus URL != 200 status'
         if devicestatus_req.status_code != 200:
             retries += 1
             logger.debug("RETRY {}: Status code is {}".format(
