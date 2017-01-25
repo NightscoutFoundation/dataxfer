@@ -15,6 +15,13 @@ MAX_RETRIES = 4
 logger = logging.getLogger(__name__)
 
 
+def log_update(oh_member, update_msg):
+    logger.debug(update_msg)
+    oh_member.last_xfer_status = update_msg + ' ({})'.format(
+        arrow.get().format())
+    oh_member.save()
+
+
 def normalize_url(url_input):
     """
     Return URL with scheme + netloc only, e.g. 'https://www.example.com'.
@@ -36,12 +43,12 @@ def normalize_url(url_input):
     return url
 
 
-def get_ns_entries(ns_url, file_obj, before_date, after_date):
+def get_ns_entries(oh_member, ns_url, file_obj, before_date, after_date):
     """
-    Get Nightscout entries data, ~90 days at a time.
+    Get Nightscout entries data, ~60 days at a time.
 
-    Retrieve ~90 days at a time until either (a) the start point is reached
-    (after_date parameter) or (b) there are no entries returned.
+    Retrieve ~60 days at a time until either (a) the start point is reached
+    (after_date parameter) or (b) a run of 6 empty calls or (c) Jan 2010.
     """
     end = arrow.get(before_date).ceil('second').timestamp * 1000
     start = arrow.get('2010-01-01').floor('second').timestamp * 1000
@@ -57,15 +64,17 @@ def get_ns_entries(ns_url, file_obj, before_date, after_date):
     # Get 8 million second chunks (~ 1/4th year) until none, or start reached.
     complete = False
     curr_end = end
-    curr_start = curr_end - 8000000000
+    curr_start = curr_end - 5000000000
+    empty_run = 0
     retries = 0
     while not complete:
         if curr_start < start:
             curr_start = start
             complete = True
             logger.debug('Final round (starting date reached)...')
-        logger.debug('Querying entries from {} to {}...'.format(
-            curr_start, curr_end))
+        log_update(oh_member, 'Querying entries from {} to {}...'.format(
+            arrow.get(curr_start/1000).format(),
+            arrow.get(curr_end/1000).format()))
         ns_params = {'count': 1000000}
         ns_params['find[date][$lte]'] = curr_end
         ns_params['find[date][$gt]'] = curr_start
@@ -80,8 +89,9 @@ def get_ns_entries(ns_url, file_obj, before_date, after_date):
             continue
         logger.debug('Status code 200.')
         retries = 0
+        logger.debug('Retrieved {} entries...'.format(len(entries_req.json())))
         if entries_req.json():
-            logger.debug('Retrieved {} entries...'.format(len(entries_req.json())))
+            empty_run = 0
             for entry in entries_req.json():
                 if initial_entry_done:
                     file_obj.write(',')  # JSON array separator
@@ -90,21 +100,23 @@ def get_ns_entries(ns_url, file_obj, before_date, after_date):
                 json.dump(entry, file_obj)
             logger.debug('Wrote {} entries to file...'.format(len(entries_req.json())))
         else:
-            complete = True
-            logger.debug('Final round (no entries retrieved)')
+            empty_run += 1
+            if empty_run > 6:
+                logger.debug('>10 empty calls: ceasing entries queries.')
+                break
         curr_end = curr_start
-        curr_start = curr_end - 8000000000
+        curr_start = curr_end - 5000000000
 
     file_obj.write(']')  # End of JSON array.
     logger.debug('Done writing entries to file.')
 
 
-def get_ns_devicestatus(ns_url, file_obj, before_date, after_date):
+def get_ns_devicestatus(oh_member, ns_url, file_obj, before_date, after_date):
     """
-    Get Nightscout devicestatus data, 7 days at a time.
+    Get Nightscout devicestatus data, 2 days at a time.
 
-    Retrieve four months at a time until either (a) the start point is reached
-    (after_date parameter) or (b) a run of ten empty weeks or (c) Oct 2014.
+    Retrieve four days at a time until either (a) the start point is reached
+    (after_date parameter) or (b) a run of 40 empty calls or (c) Oct 2014.
     """
     end = arrow.get(before_date).ceil('second')
     start = arrow.get('2014-10-01').floor('second')
@@ -120,7 +132,7 @@ def get_ns_devicestatus(ns_url, file_obj, before_date, after_date):
     # Get 8 million second chunks (~ 1/4th year) until none, or start reached.
     complete = False
     curr_end = end
-    curr_start = curr_end - datetime.timedelta(days=7)
+    curr_start = curr_end - datetime.timedelta(days=2)
     empty_run = 0
     retries = 0
     while not complete:
@@ -128,7 +140,7 @@ def get_ns_devicestatus(ns_url, file_obj, before_date, after_date):
             curr_start = start
             complete = True
             logger.debug('Final round (starting date reached)...')
-        logger.debug('Querying devicestatus from {} to {}...'.format(
+        log_update(oh_member, 'Querying devicestatus from {} to {}...'.format(
             curr_start.isoformat(), curr_end.isoformat()))
         ns_params = {'count': 1000000}
         ns_params['find[created_at][$lte]'] = curr_end.isoformat()
@@ -159,22 +171,22 @@ def get_ns_devicestatus(ns_url, file_obj, before_date, after_date):
         else:
             # Quit if more than 10 empty weeks have been encountered.
             empty_run += 1
-            if empty_run > 10:
+            if empty_run > 40:
                 logger.debug('>10 empty weeks: ceasing devicestatus queries.')
                 break
         curr_end = curr_start
-        curr_start = curr_end - datetime.timedelta(days=7)
+        curr_start = curr_end - datetime.timedelta(days=2)
 
     file_obj.write(']')
     logger.debug('Done writing devicestatus items to file.')
 
 
-def get_ns_treatments(ns_url, file_obj, before_date, after_date):
+def get_ns_treatments(oh_member, ns_url, file_obj, before_date, after_date):
     """
-    Get Nightscout treatments data, 30 days at a time.
+    Get Nightscout treatments data, 20 days at a time.
 
     Retrieve in chunks and write to file until (a) the start point is reached
-    (after_date parameter) or (b) a run of 10 empty months or (c) Jan 2012.
+    (after_date parameter) or (b) a run of 15 empty calls or (c) Jan 2012.
     """
     end = arrow.get(before_date).ceil('second')
     start = arrow.get('2012-01-01').floor('second')
@@ -190,7 +202,7 @@ def get_ns_treatments(ns_url, file_obj, before_date, after_date):
     # Get 8 million second chunks (~ 1/4th year) until none, or start reached.
     complete = False
     curr_end = end
-    curr_start = curr_end - datetime.timedelta(days=30)
+    curr_start = curr_end - datetime.timedelta(days=20)
     empty_run = 0
     retries = 0
     while not complete:
@@ -198,7 +210,7 @@ def get_ns_treatments(ns_url, file_obj, before_date, after_date):
             curr_start = start
             complete = True
             logger.debug('Final round (starting date reached)...')
-        logger.debug('Querying treatments from {} to {}...'.format(
+        log_update(oh_member, 'Querying treatments from {} to {}...'.format(
             curr_start.isoformat(), curr_end.isoformat()))
         ns_params = {'count': 1000000}
         ns_params['find[created_at][$lte]'] = curr_end.isoformat()
@@ -229,11 +241,11 @@ def get_ns_treatments(ns_url, file_obj, before_date, after_date):
         else:
             # Quit if more than 10 empty weeks have been encountered.
             empty_run += 1
-            if empty_run > 10:
-                logger.debug('>10 empty months: ceasing treatments queries.')
+            if empty_run > 15:
+                logger.debug('>15 empty calls: ceasing treatments queries.')
                 break
         curr_end = curr_start
-        curr_start = curr_end - datetime.timedelta(days=30)
+        curr_start = curr_end - datetime.timedelta(days=20)
 
     file_obj.write(']')
     logger.debug('Done writing treatments items to file.')
@@ -257,17 +269,30 @@ def ns_data_file(oh_member, data_type, tempdir, ns_url,
 
     # A single query works for sparse data.
     if data_type == 'profile':
+        oh_member.last_xfer_status = 'Retrieving profile data... ({})'.format(
+            arrow.get().format())
+        oh_member.save()
         ns_data_url = ns_url + '/api/v1/profile.json'
         ns_params = {'count': 1000000}
         data_req = requests.get(ns_data_url, params=ns_params)
         if data_req.json():
             json.dump(data_req.json(), file_obj)
     elif data_type == 'treatments':
-        get_ns_treatments(ns_url, file_obj, before_date, after_date)
+        oh_member.last_xfer_status = 'Retrieving treatments data... ({})'.format(
+            arrow.get().format())
+        oh_member.save()
+        oh_member.last_xfer_status = 'Retrieving treatment data...'
+        get_ns_treatments(oh_member, ns_url, file_obj, before_date, after_date)
     elif data_type == 'entries':
-        get_ns_entries(ns_url, file_obj, before_date, after_date)
+        oh_member.last_xfer_status = 'Retrieving entries data... ({})'.format(
+            arrow.get().format())
+        oh_member.save()
+        get_ns_entries(oh_member, ns_url, file_obj, before_date, after_date)
     elif data_type == 'devicestatus':
-        get_ns_devicestatus(ns_url, file_obj, before_date, after_date)
+        oh_member.last_xfer_status = 'Retrieving devicestatus data... ({})'.format(
+            arrow.get().format())
+        oh_member.save()
+        get_ns_devicestatus(oh_member, ns_url, file_obj, before_date, after_date)
 
     logger.debug('Closing {}.json.gz file...'.format(data_type))
     file_obj.close()
