@@ -36,7 +36,7 @@ def normalize_url(url_input):
     return url
 
 
-def get_ns_entries(ns_url, before_date, after_date):
+def get_ns_entries(ns_url, file_obj, before_date, after_date):
     """
     Get Nightscout entries data, ~90 days at a time.
 
@@ -50,9 +50,12 @@ def get_ns_entries(ns_url, before_date, after_date):
 
     ns_entries_url = ns_url + '/api/v1/entries.json'
 
+    # Start a JSON array.
+    file_obj.write('[')
+    initial_entry_done = False  # Entries after initial are preceded by commas.
+
     # Get 8 million second chunks (~ 1/4th year) until none, or start reached.
     complete = False
-    all_entries = []
     curr_end = end
     curr_start = curr_end - 8000000000
     retries = 0
@@ -79,21 +82,29 @@ def get_ns_entries(ns_url, before_date, after_date):
         retries = 0
         if entries_req.json():
             logger.debug('Retrieved {} entries...'.format(len(entries_req.json())))
-            all_entries = all_entries + entries_req.json()
+            for entry in entries_req.json():
+                if initial_entry_done:
+                    file_obj.write(',')  # JSON array separator
+                else:
+                    initial_entry_done = True
+                json.dump(entry, file_obj)
+            logger.debug('Wrote {} entries to file...'.format(len(entries_req.json())))
         else:
             complete = True
             logger.debug('Final round (no entries retrieved)')
         curr_end = curr_start
         curr_start = curr_end - 8000000000
-    return all_entries
+
+    file_obj.write(']')  # End of JSON array.
+    logger.debug('Done writing entries to file.')
 
 
-def get_ns_devicestatus(ns_url, before_date, after_date):
+def get_ns_devicestatus(ns_url, file_obj, before_date, after_date):
     """
-    Get Nightscout devicestatus data, 90 days at a time.
+    Get Nightscout devicestatus data, 7 days at a time.
 
     Retrieve four months at a time until either (a) the start point is reached
-    (after_date parameter) or (b) 2012.
+    (after_date parameter) or (b) a run of ten empty weeks or (c) Oct 2014.
     """
     end = arrow.get(before_date).ceil('second')
     start = arrow.get('2014-10-01').floor('second')
@@ -102,11 +113,15 @@ def get_ns_devicestatus(ns_url, before_date, after_date):
 
     ns_entries_url = ns_url + '/api/v1/devicestatus.json'
 
+    # Start a JSON array.
+    file_obj.write('[')
+    initial_entry_done = False  # Entries after initial are preceded by commas.
+
     # Get 8 million second chunks (~ 1/4th year) until none, or start reached.
     complete = False
-    all_entries = []
     curr_end = end
-    curr_start = curr_end - datetime.timedelta(days=90)
+    curr_start = curr_end - datetime.timedelta(days=7)
+    empty_run = 0
     retries = 0
     while not complete:
         if curr_start < start:
@@ -131,10 +146,97 @@ def get_ns_devicestatus(ns_url, before_date, after_date):
         retries = 0
         logger.debug('Retrieved {} devicestatus items...'.format(
             len(devicestatus_req.json())))
-        all_entries = all_entries + devicestatus_req.json()
+        if devicestatus_req.json():
+            empty_run = 0
+            for item in devicestatus_req.json():
+                if initial_entry_done:
+                    file_obj.write(',')  # JSON array separator
+                else:
+                    initial_entry_done = True
+                json.dump(item, file_obj)
+            logger.debug('Wrote {} devicestatus items to file...'.format(
+                len(devicestatus_req.json())))
+        else:
+            # Quit if more than 10 empty weeks have been encountered.
+            empty_run += 1
+            if empty_run > 10:
+                logger.debug('>10 empty weeks: ceasing devicestatus queries.')
+                break
         curr_end = curr_start
-        curr_start = curr_end - datetime.timedelta(days=90)
-    return all_entries
+        curr_start = curr_end - datetime.timedelta(days=7)
+
+    file_obj.write(']')
+    logger.debug('Done writing devicestatus items to file.')
+
+
+def get_ns_treatments(ns_url, file_obj, before_date, after_date):
+    """
+    Get Nightscout treatments data, 30 days at a time.
+
+    Retrieve in chunks and write to file until (a) the start point is reached
+    (after_date parameter) or (b) a run of 10 empty months or (c) Jan 2012.
+    """
+    end = arrow.get(before_date).ceil('second')
+    start = arrow.get('2012-01-01').floor('second')
+    if after_date:
+        start = arrow.get(after_date).floor('second')
+
+    ns_entries_url = ns_url + '/api/v1/treatments.json'
+
+    # Start a JSON array.
+    file_obj.write('[')
+    initial_entry_done = False  # Entries after initial are preceded by commas.
+
+    # Get 8 million second chunks (~ 1/4th year) until none, or start reached.
+    complete = False
+    curr_end = end
+    curr_start = curr_end - datetime.timedelta(days=30)
+    empty_run = 0
+    retries = 0
+    while not complete:
+        if curr_start < start:
+            curr_start = start
+            complete = True
+            logger.debug('Final round (starting date reached)...')
+        logger.debug('Querying treatments from {} to {}...'.format(
+            curr_start.isoformat(), curr_end.isoformat()))
+        ns_params = {'count': 1000000}
+        ns_params['find[created_at][$lte]'] = curr_end.isoformat()
+        ns_params['find[created_at][$gt]'] = curr_start.isoformat()
+        devicestatus_req = requests.get(ns_entries_url, params=ns_params)
+        logger.debug('Request complete.')
+        assert devicestatus_req.status_code == 200 or retries < MAX_RETRIES, \
+            'NS devicestatus URL != 200 status'
+        if devicestatus_req.status_code != 200:
+            retries += 1
+            logger.debug("RETRY {}: Status code is {}".format(
+                retries, devicestatus_req.status_code))
+            continue
+        logger.debug('Status code 200.')
+        retries = 0
+        logger.debug('Retrieved {} treatments items...'.format(
+            len(devicestatus_req.json())))
+        if devicestatus_req.json():
+            empty_run = 0
+            for item in devicestatus_req.json():
+                if initial_entry_done:
+                    file_obj.write(',')  # JSON array separator
+                else:
+                    initial_entry_done = True
+                json.dump(item, file_obj)
+            logger.debug('Wrote {} treatments items to file...'.format(
+                len(devicestatus_req.json())))
+        else:
+            # Quit if more than 10 empty weeks have been encountered.
+            empty_run += 1
+            if empty_run > 10:
+                logger.debug('>10 empty months: ceasing treatments queries.')
+                break
+        curr_end = curr_start
+        curr_start = curr_end - datetime.timedelta(days=30)
+
+    file_obj.write(']')
+    logger.debug('Done writing treatments items to file.')
 
 
 def ns_data_file(oh_member, data_type, tempdir, ns_url,
@@ -146,34 +248,29 @@ def ns_data_file(oh_member, data_type, tempdir, ns_url,
     """
     assert data_type in ['treatments', 'profile', 'entries', 'devicestatus']
 
+    logger.debug('Initializing {}.json.gz file...'.format(data_type))
+    filepath = os.path.join(tempdir, '{}.json.gz'.format(data_type))
+    file_obj = gzip.open(filepath, 'wb')
+
     logger.info('Retrieving NS {} for {}...'.format(
         data_type, oh_member.oh_id))
 
     # A single query works for sparse data.
-    if data_type in ['treatments', 'profile']:
-        ns_data_url = ns_url + '/api/v1/{}.json'.format(data_type)
+    if data_type == 'profile':
+        ns_data_url = ns_url + '/api/v1/profile.json'
         ns_params = {'count': 1000000}
-        if data_type == 'treatments':
-            ns_params['find[created_at][$lte]'] = arrow.get(
-                before_date).ceil('second').format()
-            if after_date:
-                ns_params['find[created_at][$gte]'] = arrow.get(
-                    after_date).floor('second').format()
-
         data_req = requests.get(ns_data_url, params=ns_params)
-        assert data_req.status_code == 200, 'NS treatments URL != 200 status'
-        data = data_req.json()
-
-    # Custom functions to iterate through chunks for bigger data.
+        if data_req.json():
+            json.dump(data_req.json(), file_obj)
+    elif data_type == 'treatments':
+        get_ns_treatments(ns_url, file_obj, before_date, after_date)
     elif data_type == 'entries':
-        data = get_ns_entries(ns_url, before_date, after_date)
+        get_ns_entries(ns_url, file_obj, before_date, after_date)
     elif data_type == 'devicestatus':
-        data = get_ns_devicestatus(ns_url, before_date, after_date)
+        get_ns_devicestatus(ns_url, file_obj, before_date, after_date)
 
-    logger.debug('Creating {}.json.gz file...'.format(data_type))
-    filepath = os.path.join(tempdir, '{}.json.gz'.format(data_type))
-    with gzip.open(filepath, 'wb') as f:
-        json.dump(data, f)
+    logger.debug('Closing {}.json.gz file...'.format(data_type))
+    file_obj.close()
 
     md5 = hashlib.md5()
     with open(filepath, 'rb') as f:
