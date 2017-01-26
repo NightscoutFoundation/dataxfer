@@ -4,6 +4,8 @@ import hashlib
 import json
 import logging
 import os
+import random
+import string
 from urlparse import urlparse
 
 import arrow
@@ -41,6 +43,21 @@ def normalize_url(url_input):
     if test_url.status_code != 200:
         return None
     return url
+
+
+def sub_sensitive(targ_dict, subs_dict, keyval):
+    """
+    Sub potentially sensitive keyval in targ_dict w/random string in subs_dict
+    """
+    try:
+        targ_dict[keyval] = subs_dict[targ_dict[keyval]]
+    except KeyError:
+        try:
+            subs_dict[targ_dict[keyval]] = ''.join(random.choice(
+                string.ascii_uppercase + string.digits) for _ in range(6))
+            targ_dict[keyval] = subs_dict[targ_dict[keyval]]
+        except KeyError:
+            pass
 
 
 def get_ns_entries(oh_member, ns_url, file_obj, before_date, after_date):
@@ -123,6 +140,9 @@ def get_ns_devicestatus(oh_member, ns_url, file_obj, before_date, after_date):
     if after_date:
         start = arrow.get(after_date).floor('second')
 
+    # Dict for consistent subs of recurring potentially sensitive strings.
+    subs = dict()
+
     ns_entries_url = ns_url + '/api/v1/devicestatus.json'
 
     # Start a JSON array.
@@ -161,6 +181,7 @@ def get_ns_devicestatus(oh_member, ns_url, file_obj, before_date, after_date):
         if devicestatus_req.json():
             empty_run = 0
             for item in devicestatus_req.json():
+                sub_sensitive(item, subs, 'device')
                 if initial_entry_done:
                     file_obj.write(',')  # JSON array separator
                 else:
@@ -193,6 +214,9 @@ def get_ns_treatments(oh_member, ns_url, file_obj, before_date, after_date):
     if after_date:
         start = arrow.get(after_date).floor('second')
 
+    # Dict for consistent subs of recurring potentially sensitive strings.
+    subs = dict()
+
     ns_entries_url = ns_url + '/api/v1/treatments.json'
 
     # Start a JSON array.
@@ -215,29 +239,30 @@ def get_ns_treatments(oh_member, ns_url, file_obj, before_date, after_date):
         ns_params = {'count': 1000000}
         ns_params['find[created_at][$lte]'] = curr_end.isoformat()
         ns_params['find[created_at][$gt]'] = curr_start.isoformat()
-        devicestatus_req = requests.get(ns_entries_url, params=ns_params)
+        treatments_req = requests.get(ns_entries_url, params=ns_params)
         logger.debug('Request complete.')
-        assert devicestatus_req.status_code == 200 or retries < MAX_RETRIES, \
-            'NS devicestatus URL != 200 status'
-        if devicestatus_req.status_code != 200:
+        assert treatments_req.status_code == 200 or retries < MAX_RETRIES, \
+            'NS treatments URL != 200 status'
+        if treatments_req.status_code != 200:
             retries += 1
             logger.debug("RETRY {}: Status code is {}".format(
-                retries, devicestatus_req.status_code))
+                retries, treatments_req.status_code))
             continue
         logger.debug('Status code 200.')
         retries = 0
         logger.debug('Retrieved {} treatments items...'.format(
-            len(devicestatus_req.json())))
-        if devicestatus_req.json():
+            len(treatments_req.json())))
+        if treatments_req.json():
             empty_run = 0
-            for item in devicestatus_req.json():
+            for item in treatments_req.json():
+                sub_sensitive(item, subs, 'enteredBy')
                 if initial_entry_done:
                     file_obj.write(',')  # JSON array separator
                 else:
                     initial_entry_done = True
                 json.dump(item, file_obj)
             logger.debug('Wrote {} treatments items to file...'.format(
-                len(devicestatus_req.json())))
+                len(treatments_req.json())))
         else:
             # Quit if more than 10 empty weeks have been encountered.
             empty_run += 1

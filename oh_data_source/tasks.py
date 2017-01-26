@@ -63,19 +63,15 @@ def xfer_to_open_humans(oh_id, ns_before, ns_after, ns_url, num_submit=0):
 
 def add_data_to_open_humans(oh_member, ns_before, ns_after, ns_url, tempdir):
     """
-    Add demonstration file to Open Humans.
-
-    This might be a good place to start editing, to add your own project data.
-
-    This template is written to provide the function with a tempdir that
-    will be cleaned up later. You can use the tempdir to stage the creation of
-    files you plan to upload to Open Humans.
+    Add Nightscout data to Open Humans.
     """
+    # Ensure Nightscout URL is formatted to contains scheme and is responsive.
     ns_url = normalize_url(ns_url)
     if not ns_url:
         oh_member.last_xfer_status = 'Aborted: URL did not return 200 status.'
         oh_member.save()
 
+    # Use current datetime for "before" date if unspecified.
     if not ns_before:
         ns_before = arrow.get().format('YYYY-MM-DD')
 
