@@ -47,7 +47,7 @@ def oh_code_to_member(code):
     if settings.OH_CLIENT_SECRET and settings.OH_CLIENT_ID and code:
         data = {
             'grant_type': 'authorization_code',
-            'redirect_uri': '{}/complete'.format(APP_BASE_URL),
+            'redirect_uri': '{}/complete/'.format(APP_BASE_URL),
             'code': code,
         }
         req = requests.post(
