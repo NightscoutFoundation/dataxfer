@@ -1,25 +1,28 @@
-// Placeholder file for local JavaScript.
+// jQuery for data selection
 
 $(document).ready(function(){
-	alert("Javascript is loaded!");
+	
 	$(function() {
+		
 		$('input[name="afterDate"]').daterangepicker({
 		    singleDatePicker: true,
 		    showDropdowns: true,
 			autoUpdateInput: false,
 			cancelLabel: 'Clear'
 		}, 
+		
 		function(start, end, label) {
 		    
 		});
+		
 	});
 
-	$('input[name="afterDate"]').on('apply.daterangepicker', function(ev, picker) {
-      $(this).val(picker.startDate.format('YYYY-MM-DD'));
-  	});
+	$('input[name="afterDate"]').on('apply.daterangepicker', function(ev, picker) { 
+		$(this).val(picker.startDate.format('YYYY-MM-DD')); 
+	});
 
 	$('input[name="afterDate"]').on('cancel.daterangepicker', function(ev, picker) {
-      $(this).val('');
+		$(this).val('');
 	});
 
 	$(function() {
@@ -35,10 +38,10 @@ $(document).ready(function(){
 	});
 
 	$('input[name="beforeDate"]').on('apply.daterangepicker', function(ev, picker) {
-      $(this).val(picker.startDate.format('YYYY-MM-DD'));
+		$(this).val(picker.startDate.format('YYYY-MM-DD'));
   	});
 
 	$('input[name="beforeDate"]').on('cancel.daterangepicker', function(ev, picker) {
-      $(this).val('');
+		$(this).val('');
 	});
 }); // end of $(document).ready()
