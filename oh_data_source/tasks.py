@@ -126,12 +126,12 @@ def delete_all_oh_files(oh_member):
     Delete all current project files in Open Humans for this project member.
     """
     # Delete all current Nightscout files in Open Humans.
-    req = requests.post(
-        OH_DELETE_FILES,
-        params={'access_token': oh_member.get_access_token()},
-        data={'project_member_id': oh_member.oh_id,
-              'all_files': True})
-    logger.debug('Files deleted. Status code: {}'.format(req.status_code))
+    #req = requests.post(
+    #    OH_DELETE_FILES,
+    #    params={'access_token': oh_member.get_access_token()},
+    #    data={'project_member_id': oh_member.oh_id,
+    #          'all_files': True})
+    # logger.debug('Files deleted. Status code: {}'.format(req.status_code))
 
 
 def upload_file_to_oh(oh_member, filepath, metadata):
