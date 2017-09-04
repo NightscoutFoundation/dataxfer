@@ -19,7 +19,7 @@ HEROKU_APP = True if os.getenv('HEROKU_APP', '').lower() == 'true' else False
 
 # Allow all host headers if this is running as a Heroku app.
 if HEROKU_APP:
-    ALLOWED_HOSTS = ['*','oh-copy.herokuapp.com']
+    ALLOWED_HOSTS = ['*']
 else:
     ALLOWED_HOSTS = []
 
