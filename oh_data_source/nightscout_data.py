@@ -286,7 +286,7 @@ def ns_data_file(oh_member, data_type, tempdir, ns_url,
     assert data_type in ['treatments', 'profile', 'entries', 'devicestatus']
 
     logger.debug('Initializing {}.json.gz file...'.format(data_type))
-    filepath = os.path.join(tempdir, '{}.json.gz'.format(data_type))
+    filepath = os.path.join(tempdir, '{}'.format(data_type) + '_' + after_date + '_to_' + before_date + '.json.gz')
     file_obj = gzip.open(filepath, 'wb')
 
     logger.info('Retrieving NS {} for {}...'.format(
@@ -336,5 +336,5 @@ def ns_data_file(oh_member, data_type, tempdir, ns_url,
     }
     if after_date:
         metadata['start_date'] = arrow.get(after_date).format('YYYY-MM-DD')
-
+	
     return (filepath, metadata)

@@ -8,7 +8,8 @@ $(document).ready(function(){
 		    singleDatePicker: true,
 		    showDropdowns: true,
 			autoUpdateInput: false,
-			cancelLabel: 'Clear'
+			cancelLabel: 'Clear',
+			"maxDate": moment()
 		}, 
 		
 		function(start, end, label) {
@@ -23,14 +24,17 @@ $(document).ready(function(){
 
 	$('input[name="afterDate"]').on('cancel.daterangepicker', function(ev, picker) {
 		$(this).val('');
+		
 	});
 
 	$(function() {
+		
 		$('input[name="beforeDate"]').daterangepicker({
 		    singleDatePicker: true,
 		    showDropdowns: true,
 			autoUpdateInput: false,
-			cancelLabel: 'Clear'
+			cancelLabel: 'Clear',
+			"maxDate": moment(),
 		}, 
 		function(start, end, label) {
 		    
