@@ -18,7 +18,7 @@ The `Enrollment URL` will be a link to your final app page (http://yourapp.herok
 
 Set the `Redirect URL` to exactly: http://127.0.0.1:5000/complete/
 
-Once created, you can go to https://www.openhumans.org/direct-sharing/projects/manage/ and click on `edit` next to your your project's name. You will find your `client_id` and`client_secret` here.
+Once created, you can go to https://www.openhumans.org/direct-sharing/projects/manage/ and click on the project name. You will find your `client_id` and`client_secret` here.
 
 (You can't reuse the IDs for the project/app running on Heroku, because
 Open Humans requires OAuth2 projects to register their redirect_uri.)
@@ -38,19 +38,19 @@ sudo apt-get install virtualenv
 
 #### 3. Configure Local Environment Variables
 
-Download this repository and then copy the enviornment variable file using `cp env.example .env`
+Download the repository and then copy the enviornment variable file using `cp env.example .env`
 
-Open the `.env` file and replace `CLIENT_ID` and `CLIENT_SECRET` with your project's IDs found in match your app. 
+Open the `.env` file and replace `CLIENT_ID` and `CLIENT_SECRET` with your project's matching ID and SECRET. 
 
 #### 4. Setup Local Virtual Environment
 
-Type `virtualenv venv` to create a new virtual environment file.
+Use `virtualenv venv` to create a new virtual environment file.
 
 Enter the virtual environment with `source venv/bin/activate`.
 
 Install the requirements using `pip install -r requirements.txt`.
 
-Migrate the data using `python manage.py migrate`.
+Finally run `python manage.py migrate`.
  
 
 #### 5. Start Local Server
@@ -63,11 +63,16 @@ Your local site can be loaded by opening a web browser and visiting http://127.0
 
 ### Deployment to Heroku
 
-If you are ready to deploy to Heroku, you can use the following link:
+Create a new app in Heroku, and link it to your own repository or use the Heroku-CLI to upload files to the heroku server.
 
-[![Deploy to Heroku][heroku-img]][heroku-url]
+Once you have your heroku app setup, go to https://www.openhumans.org/direct-sharing/projects/manage/ and click on the `edit` button next to your project name. Set the `Redirect URL` to exactly: https://your-app-name.herokuapp.com/complete/
 
-[heroku-img]: https://www.herokucdn.com/deploy/button.png
-[heroku-url]: https://heroku.com/deploy
+Next you will need to add the following local enviornment variables in the Config Vars section of your heroku app:
 
-You will need to set up local enviornment variables from your .env file in the Config Vars section of your heroku app.
+`APP_BASE_URL` : Set this to exactly https://your-app-name.herokuapp.com
+`OH_ACTIVITY_PAGE` : https://www.openhumans.org/activity/your-project-name
+`OH_CLIENT_ID` : Your Client ID
+`OH_CLIENT_SECRET` : Your Client Secret
+`HEROKU_APP` : true
+
+Setup is now complete.
