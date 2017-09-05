@@ -20,10 +20,7 @@ Set the `Redirect URL` to exactly: http://127.0.0.1:5000/complete/
 
 Once created, you can go to https://www.openhumans.org/direct-sharing/projects/manage/ and click on the project name. You will find your `client_id` and`client_secret` here.
 
-(You can't reuse the IDs for the project/app running on Heroku, because
-Open Humans requires OAuth2 projects to register their redirect_uri.)
-
-For more instructions on OAuth2 setup, go to: https://www.openhumans.org/direct-sharing/oauth2-setup/
+For more information on OAuth2 setup, go to: https://www.openhumans.org/direct-sharing/oauth2-setup/
 
 #### 2. Install Dependencies
 
@@ -69,10 +66,15 @@ Once you have your heroku app setup, go to https://www.openhumans.org/direct-sha
 
 Next you will need to add the following local enviornment variables in the Config Vars section of your heroku app:
 
-`APP_BASE_URL` : Set this to exactly https://your-app-name.herokuapp.com
-`OH_ACTIVITY_PAGE` : https://www.openhumans.org/activity/your-project-name
-`OH_CLIENT_ID` : Your Client ID
-`OH_CLIENT_SECRET` : Your Client Secret
-`HEROKU_APP` : true
+`APP_BASE_URL`: Set this to exactly https://your-app-name.herokuapp.com
+
+`OH_ACTIVITY_PAGE`: https://www.openhumans.org/activity/your-project-name
+
+`OH_CLIENT_ID`: Your Client ID
+
+`OH_CLIENT_SECRET`: Your Client Secret
+
+`HEROKU_APP`: true
+
 
 Setup is now complete.
