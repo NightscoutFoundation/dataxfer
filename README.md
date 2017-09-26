@@ -76,5 +76,11 @@ Next you will need to add the following local enviornment variables in the Confi
 
 `HEROKU_APP`: true
 
+`SECRET_KEY` : your_secret_key_here (see http://www.howtogeek.com/howto/30184/10-ways-to-generate-a-random-password-from-the-command-line/)
+
+`PYTHONUNBUFFERED` : true
+
+On the Resources tab for your app, edit the Celery Worker to be active. After this, add a CloudAMQP add-on and use the "Little Lemur" version.
+
 
 Setup is now complete.
