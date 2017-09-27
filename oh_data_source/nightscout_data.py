@@ -192,11 +192,11 @@ def get_ns_devicestatus(oh_member, ns_url, file_obj, before_date, after_date):
         else:
             # Quit if more than 10 empty weeks have been encountered.
             empty_run += 1
-            if empty_run > 70:
+            if empty_run > 40:
                 logger.debug('>10 empty weeks: ceasing devicestatus queries.')
                 break
         curr_end = curr_start
-        curr_start = curr_end - datetime.timedelta(days=1)
+        curr_start = curr_end - datetime.timedelta(days=2)
 
     file_obj.write(']')
     logger.debug('Done writing devicestatus items to file.')
