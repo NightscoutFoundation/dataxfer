@@ -99,9 +99,14 @@ def home(request):
                'oh_proj_page': settings.OH_ACTIVITY_PAGE}
 
     if request.user.is_authenticated:
-        context.update({
-            'oh_data': oh_get_member_data(
+        try:
+            oh_data = oh_get_member_data(
                 request.user.openhumansmember.get_access_token())
+        except Exception:
+            logout(request)
+            return redirect('home')
+        context.update({
+            'oh_data': oh_data,
         })
 
     return render(request, 'oh_data_source/index.html', context=context)
