@@ -13,7 +13,7 @@ import os
 import shutil
 import tempfile
 import textwrap
-from urllib2 import HTTPError
+from urllib.error import HTTPError
 
 import arrow
 from celery import shared_task
@@ -54,7 +54,8 @@ def xfer_to_open_humans(oh_id, ns_before, ns_after, ns_url, num_submit=0):
             oh_member, ns_before, ns_after, ns_url, tempdir)
         oh_member.last_xfer_status = 'Complete'
         oh_member.save()
-    except:
+    except Exception as error:
+        logger.debug('Exception\n{}'.format(error))
         oh_member.last_xfer_status = 'Failed'
         oh_member.save()
     finally:

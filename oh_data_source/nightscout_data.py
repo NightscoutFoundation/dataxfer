@@ -6,7 +6,7 @@ import logging
 import os
 import random
 import string
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 import arrow
 import requests
@@ -75,7 +75,7 @@ def get_ns_entries(oh_member, ns_url, file_obj, before_date, after_date):
     ns_entries_url = ns_url + '/api/v1/entries.json'
 
     # Start a JSON array.
-    file_obj.write('[')
+    file_obj.write('['.encode())
     initial_entry_done = False  # Entries after initial are preceded by commas.
 
     # Get 8 million second chunks (~ 1/4th year) until none, or start reached.
@@ -111,10 +111,11 @@ def get_ns_entries(oh_member, ns_url, file_obj, before_date, after_date):
             empty_run = 0
             for entry in entries_req.json():
                 if initial_entry_done:
-                    file_obj.write(',')  # JSON array separator
+                    file_obj.write(','.encode())  # JSON array separator
                 else:
                     initial_entry_done = True
-                json.dump(entry, file_obj)
+                jsonstr = json.dumps(entry)
+                file_obj.write(jsonstr.encode())
             logger.debug('Wrote {} entries to file...'.format(len(entries_req.json())))
         else:
             empty_run += 1
@@ -124,7 +125,7 @@ def get_ns_entries(oh_member, ns_url, file_obj, before_date, after_date):
         curr_end = curr_start
         curr_start = curr_end - 5000000000
 
-    file_obj.write(']')  # End of JSON array.
+    file_obj.write(']'.encode())  # End of JSON array.
     logger.debug('Done writing entries to file.')
 
 
@@ -146,7 +147,7 @@ def get_ns_devicestatus(oh_member, ns_url, file_obj, before_date, after_date):
     ns_entries_url = ns_url + '/api/v1/devicestatus.json'
 
     # Start a JSON array.
-    file_obj.write('[')
+    file_obj.write('['.encode())
     initial_entry_done = False  # Entries after initial are preceded by commas.
 
     # Get 8 million second chunks (~ 1/4th year) until none, or start reached.
@@ -183,10 +184,11 @@ def get_ns_devicestatus(oh_member, ns_url, file_obj, before_date, after_date):
             for item in devicestatus_req.json():
                 sub_sensitive(item, subs, 'device')
                 if initial_entry_done:
-                    file_obj.write(',')  # JSON array separator
+                    file_obj.write(','.encode())  # JSON array separator
                 else:
                     initial_entry_done = True
-                json.dump(item, file_obj)
+                jsonstr = json.dumps(item)
+                file_obj.write(jsonstr.encode())
             logger.debug('Wrote {} devicestatus items to file...'.format(
                 len(devicestatus_req.json())))
         else:
@@ -198,7 +200,7 @@ def get_ns_devicestatus(oh_member, ns_url, file_obj, before_date, after_date):
         curr_end = curr_start
         curr_start = curr_end - datetime.timedelta(days=2)
 
-    file_obj.write(']')
+    file_obj.write(']'.encode())
     logger.debug('Done writing devicestatus items to file.')
 
 
@@ -220,7 +222,7 @@ def get_ns_treatments(oh_member, ns_url, file_obj, before_date, after_date):
     ns_entries_url = ns_url + '/api/v1/treatments.json'
 
     # Start a JSON array.
-    file_obj.write('[')
+    file_obj.write('['.encode())
     initial_entry_done = False  # Entries after initial are preceded by commas.
 
     # Get 8 million second chunks (~ 1/4th year) until none, or start reached.
@@ -257,10 +259,11 @@ def get_ns_treatments(oh_member, ns_url, file_obj, before_date, after_date):
             for item in treatments_req.json():
                 sub_sensitive(item, subs, 'enteredBy')
                 if initial_entry_done:
-                    file_obj.write(',')  # JSON array separator
+                    file_obj.write(','.encode())  # JSON array separator
                 else:
                     initial_entry_done = True
-                json.dump(item, file_obj)
+                jsonstr = json.dumps(item)
+                file_obj.write(jsonstr.encode())
             logger.debug('Wrote {} treatments items to file...'.format(
                 len(treatments_req.json())))
         else:
@@ -272,7 +275,7 @@ def get_ns_treatments(oh_member, ns_url, file_obj, before_date, after_date):
         curr_end = curr_start
         curr_start = curr_end - datetime.timedelta(days=20)
 
-    file_obj.write(']')
+    file_obj.write(']'.encode())
     logger.debug('Done writing treatments items to file.')
 
 
@@ -301,7 +304,8 @@ def ns_data_file(oh_member, data_type, tempdir, ns_url,
         ns_params = {'count': 1000000}
         data_req = requests.get(ns_data_url, params=ns_params)
         if data_req.json():
-            json.dump(data_req.json(), file_obj)
+            jsonstr = json.dumps(data_req.json())
+            file_obj.write(jsonstr.encode())
     elif data_type == 'treatments':
         oh_member.last_xfer_status = 'Retrieving treatments data... ({})'.format(
             arrow.get().format())
