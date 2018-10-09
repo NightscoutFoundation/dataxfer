@@ -7,7 +7,7 @@ Django==2.1.2
 gunicorn==19.6.0
 kombu==4.0.2
 postgres==2.2.1
-psycopg2==2.7
+psycopg2==2.7.5
 python-dateutil==2.6.0
 pytz==2016.10
 requests==2.12.4
