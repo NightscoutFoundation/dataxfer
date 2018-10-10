@@ -8,79 +8,62 @@ https://dataxfer-ns-oh.herokuapp.com/
 
 ### Local Setup and Development
 
-To develop this tool, you can run this app locally by following the instructions below or by using the Heroku-CLI.
-
-#### 1. Creating a project on Open Humans
+#### Creating a project on Open Humans
 
 First you will need an Open Humans project to test and develop on. You can set up a project here: https://www.openhumans.org/direct-sharing/projects/oauth2/create/
 
-The `Enrollment URL` will be a link to your final app page (http://yourapp.herokuapp.com) once development is complete. 
+The `Enrollment URL` would be a link to a final app page (http://yourapp.herokuapp.com) once development is complete.
 
-Set the `Redirect URL` to exactly: http://127.0.0.1:5000/complete/
+Set the `Redirect URL` to exactly: `http://127.0.0.1:5000/complete`
 
 Once created, you can go to https://www.openhumans.org/direct-sharing/projects/manage/ and click on the project name. You will find your `client_id` and`client_secret` here.
 
 For more information on OAuth2 setup, go to: https://www.openhumans.org/direct-sharing/oauth2-setup/
 
-#### 2. Install Dependencies
+#### Installation and configuration
 
-A number of software depenencies are required to develop locally with foreman. You can install them using the following commands:
+These instructions expect you to be using the following. Make sure it's set
+up for your system first!
 
-```sudo apt-get install rabbitmq-server
-sudo apt-get install python-dev
-sudo apt-get install libpq-dev
-sudo gem install foreman
-sudo apt-get install virtualenv
-```
+* `pipenv` for local Python development
+* the Heroku CLI: https://devcenter.heroku.com/articles/heroku-cli
 
-#### 3. Configure Local Environment Variables
+Local setup:
 
-Download the repository and then copy the enviornment variable file using `cp env.example .env`
+1. Download the git repository, e.g. using `git clone`.
+2. Navigate to be inside the repository base directory.
+3. Start a local pipenv shell with `pipenv shell`
+4. Install dependencies with `pipenv install`
+5. Copy the environment variable file using `cp env.example .env`
+6. Open the `.env` file and edit to replace `CLIENT_ID` and `CLIENT_SECRET` with your project's matching ID and SECRET (see above)
+7. Initialize the database locally with `heroku local:run python manage.py migrate`
 
-Open the `.env` file and replace `CLIENT_ID` and `CLIENT_SECRET` with your project's matching ID and SECRET. 
+#### Running the app locally
 
-#### 4. Setup Local Virtual Environment
+Inside the repository base, run: `heroku local`.
 
-Use `virtualenv venv` to create a new virtual environment file.
-
-Enter the virtual environment with `source venv/bin/activate`.
-
-Install the requirements using `pip install -r requirements.txt`.
-
-Finally run `python manage.py migrate`.
- 
-
-#### 5. Start Local Server
-
-Startup your local server in the virtual environment by typing `foreman start`.
-
-Your local site can be loaded by opening a web browser and visiting http://127.0.0.1:5000/
-
-`Ctrl-C` to quit foreman and `deactivate` to exit the virtual environment.
+The app should be available in a local web browser at: http://127.0.0.1:5000
 
 ### Deployment to Heroku
 
 Create a new app in Heroku, and link it to your own repository or use the Heroku-CLI to upload files to the heroku server.
 
-Once you have your heroku app setup, go to https://www.openhumans.org/direct-sharing/projects/manage/ and click on the `edit` button next to your project name. Set the `Redirect URL` to exactly: https://your-app-name.herokuapp.com/complete/
+#### Config in Open Humans
 
-Next you will need to add the following local enviornment variables in the Config Vars section of your heroku app:
+Once you have your heroku app created, go to https://www.openhumans.org/direct-sharing/projects/manage/ and click on the `edit` button next to your project name. Set the `Redirect URL` to exactly: `https://your-app-name.herokuapp.com/complete`
 
-`APP_BASE_URL`: Set this to exactly https://your-app-name.herokuapp.com
+#### Config in Heroku
 
-`OH_ACTIVITY_PAGE`: https://www.openhumans.org/activity/your-project-name
+1. You should add the following local environment variables in the Config Vars section of your heroku app:
+  * `APP_BASE_URL`: Set this to exactly https://your-app-name.herokuapp.com
+  * `OH_ACTIVITY_PAGE` (optional): https://www.openhumans.org/activity/your-project-name
+  * `OH_CLIENT_ID`: Your Client ID
+  * `OH_CLIENT_SECRET`: Your Client Secret
+  * `SECRET_KEY` : Something long and random
+  * `PYTHONUNBUFFERED` : true
+2. On the Resources tab for your app, edit the Celery Worker to be active.
+3. On the same Resources tab, add a CloudAMQP add-on and use the "Little Lemur" version.
+4. Deploy your git repository to git (e.g. `git push heroku master`)
+5. Initialize your database with `heroku run 'python manage.py migrate'`
 
-`OH_CLIENT_ID`: Your Client ID
-
-`OH_CLIENT_SECRET`: Your Client Secret
-
-`HEROKU_APP`: true
-
-`SECRET_KEY` : your_secret_key_here (see http://www.howtogeek.com/howto/30184/10-ways-to-generate-a-random-password-from-the-command-line/)
-
-`PYTHONUNBUFFERED` : true
-
-On the Resources tab for your app, edit the Celery Worker to be active. After this, add a CloudAMQP add-on and use the "Little Lemur" version.
-
-
-Setup is now complete.
+Setup is now complete and the Heroku app should hopefully work!
