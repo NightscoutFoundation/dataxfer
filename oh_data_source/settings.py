@@ -3,25 +3,17 @@ Django settings for oh_data_source template project.
 """
 import os
 
-import dj_database_url
+import django_heroku
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', 'sEkritt-kEE_deFawlT')
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True # False if os.getenv('DEBUG', '').lower() == 'false' else True
-
-HEROKU_APP = True if os.getenv('HEROKU_APP', '').lower() == 'true' else False
-
-# Allow all host headers if this is running as a Heroku app.
-if HEROKU_APP:
-    ALLOWED_HOSTS = ['*']
-else:
-    ALLOWED_HOSTS = []
+DEBUG = True if os.getenv('DEBUG', '').lower() == 'true' else False
 
 # Open Humans configuration
 OH_CLIENT_ID = os.getenv('OH_CLIENT_ID')
@@ -82,8 +74,6 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-db_from_env = dj_database_url.config(conn_max_age=500)
-DATABASES['default'].update(db_from_env)
 
 
 # Password validation
@@ -146,7 +136,5 @@ USE_TZ = True
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
 
-# Simplified static file serving.
-# https://warehouse.python.org/project/whitenoise/
-# See also https://devcenter.heroku.com/articles/django-assets
-STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
+# Configure Django App for Heroku.
+django_heroku.settings(locals())
